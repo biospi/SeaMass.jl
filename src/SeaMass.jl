@@ -3,14 +3,16 @@ module SeaMass
 
 import HDF5
 import LibExpat
-import PyCall
-@pyimport scipy.interpolate as interpolate
+using PyCall
 
-export MzmlSpectrum
-export SmiSpectrum
-export SmvSpectrum
-export SmoSpectrum
-export BinnedSmoSpectrum
+const scipy_int = PyNULL()
+
+function __init__()
+    copy!(scipy_int, pyimport_conda("scipy.interpolate", "scipy"))
+end
+
+
+export MzmlSpectrum, SmiSpectrum, SmvSpectrum, SmoSpectrum, BinnedSmoSpectrum
 
 
 type MzmlSpectrum
@@ -19,10 +21,10 @@ type MzmlSpectrum
 end
 
 function MzmlSpectrum(filename::AbstractString, spectrumID::Number)
-    h5open(filename, "r") do file
+    HDF5.h5open(filename, "r") do file
         spectrumIndex = file["mzML_spectrumIndex"][spectrumID:spectrumID+1] + 1
 
-        mzML = xp_parse(String(file["mzML"][spectrumIndex[1]:spectrumIndex[2]-1]))
+        mzML = LibExpat.xp_parse(String(file["mzML"][spectrumIndex[1]:spectrumIndex[2]-1]))
 
         arrayLength = parse(Int, mzML["@defaultArrayLength"][1])
         mzsDataset = mzML["binaryDataArrayList/binaryDataArray/cvParam[@accession='MS:1000514']/../binary"]["@externalDataset"][1]
@@ -45,8 +47,8 @@ type SmiSpectrum
 end
 
 function SmiSpectrum(filename::AbstractString, spectrumID::Number)
-    h5open(filename, "r") do file
-        if (has(file,"spectrumIndex"))
+    HDF5.h5open(filename, "r") do file
+        if (HDF5.has(file,"spectrumIndex"))
             spectrumIndex = file["spectrumIndex"][spectrumID:spectrumID+1] + 1
         else
             spectrumIndex = [1 size(file["binCounts"])[1]+1]
@@ -66,8 +68,8 @@ type SmvSpectrum
 end
 
 function SmvSpectrum(filename::AbstractString, spectrumID::Number)
-    h5open(filename, "r") do file
-        if (has(file,"spectrumIndex"))
+    HDF5.h5open(filename, "r") do file
+        if (HDF5.has(file,"spectrumIndex"))
             spectrumIndex = file["spectrumIndex"][spectrumID:spectrumID+1] + 1
         else
             spectrumIndex = [1 size(file["binCounts"])[1]+1]
@@ -87,11 +89,11 @@ type SmoSpectrum
 end
 
 function SmoSpectrum(filename::AbstractString, spectrumID::Number)
-    smo_spectrum = h5open(filename, "r") do file
+    HDF5.h5open(filename, "r") do file
         SmoSpectrum(
             read(file, "controlPoints"),
-            h5readattr(filename, "controlPoints")["offset"][1],
-            h5readattr(filename, "controlPoints")["scale"][1]
+            HDF5.h5readattr(filename, "controlPoints")["offset"][1],
+            HDF5.h5readattr(filename, "controlPoints")["scale"][1]
         )
     end
 end
@@ -120,13 +122,13 @@ function MzmlSpectrum(smoSpectrum::SmoSpectrum, nPoints::Number)
     knots = -3:length(coefs)-4
     tck = (knots, coefs, 3)
     x = linspace(0, length(smoSpectrum.controlPoints)-3, nPoints)
-    
+
     binWidth = 1.0033548378 / (60 * 2^smoSpectrum.scale)
     mzRange = (smoSpectrum.offset + [0, length(smoSpectrum.controlPoints) - 3]) * binWidth
-    
+
     MzmlSpectrum(
         linspace(mzRange[1], mzRange[2], nPoints),
-        interpolate.splev(x, tck, ext=1) ./ binWidth      
+        scipy_int[:splev](x, tck, ext=1) ./ binWidth
     )
 end
 
