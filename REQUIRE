@@ -1,1 +1,5 @@
 julia 0.5
+
+HDF5 0.6.6
+LibExpat 0.2.1
+PyCall 1.7.2
