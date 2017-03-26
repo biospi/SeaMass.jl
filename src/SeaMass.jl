@@ -20,7 +20,7 @@ type MzmlSpectrum
   intensities
 end
 
-function MzmlSpectrum(filename::AbstractString, spectrumID::Number)
+function MzmlSpectrum(filename::AbstractString, spectrumID::Number=1)
   HDF5.h5open(filename, "r") do file
     spectrumIndex = file["mzML_spectrumIndex"][spectrumID:spectrumID+1] + 1
 
@@ -46,17 +46,17 @@ type SmiSpectrum
   exposure
 end
 
-function SmiSpectrum(filename::AbstractString, spectrumID::Number)
+function SmiSpectrum(filename::AbstractString, spectrumID::Number=1)
   HDF5.h5open(filename, "r") do file
-    if (HDF5.has(file,"spectrumIndex"))
-      spectrumIndex = file["spectrumIndex"][spectrumID:spectrumID+1] + 1
+    if (HDF5.has(file,"binCountsIndex"))
+      binCountsIndex = file["binCountsIndex"][spectrumID:spectrumID+1] + 1
     else
-      spectrumIndex = [1 size(file["binCounts"])[1]+1]
+      binCountsIndex = [1 size(file["binCounts"])[1]+1]
     end
 
     SmiSpectrum(
-      file["binEdges"][spectrumIndex[1]+spectrumID-1:spectrumIndex[2]+spectrumID-1],
-      file["binCounts"][spectrumIndex[1]:spectrumIndex[2]-1],
+      file["binEdges"][binCountsIndex[1]+spectrumID-1:binCountsIndex[2]+spectrumID-1],
+      file["binCounts"][binCountsIndex[1]:binCountsIndex[2]-1],
       file["exposures"][spectrumID][1]
     )
     end
@@ -67,16 +67,16 @@ type SmvSpectrum
     residualBinCounts
 end
 
-function SmvSpectrum(filename::AbstractString, spectrumID::Number)
+function SmvSpectrum(filename::AbstractString, spectrumID::Number=1)
   HDF5.h5open(filename, "r") do file
-    if (HDF5.has(file,"spectrumIndex"))
-      spectrumIndex = file["spectrumIndex"][spectrumID:spectrumID+1] + 1
+    if (HDF5.has(file,"binCountsIndex"))
+      binCountsIndex = file["binCountsIndex"][spectrumID:spectrumID+1] + 1
     else
-      spectrumIndex = [1 size(file["binCounts"])[1]+1]
+      binCountsIndex = [1 size(file["binCounts"])[1]+1]
     end
 
     SmvSpectrum(
-      file["binCounts"][spectrumIndex[1]:spectrumIndex[2]-1],
+      file["binCounts"][binCountsIndex[1]:binCountsIndex[2]-1],
     )
   end
 end
@@ -88,11 +88,11 @@ type SmoSpectrum
   scale
 end
 
-function SmoSpectrum(filename::AbstractString, spectrumID::Number)
+function SmoSpectrum(filename::AbstractString, spectrumID::Number=1)
   HDF5.h5open(filename, "r") do file
     dset = HDF5.d_open(file, "controlPoints")
     SmoSpectrum(
-      HDF5.d_read(file, "controlPoints"),
+      transpose(file["controlPoints"][:,spectrumID])[1,:],
       HDF5.a_read(dset, "offset")[1],
       HDF5.a_read(dset, "scale")[1]
     )
