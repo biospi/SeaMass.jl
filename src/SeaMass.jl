@@ -24,42 +24,62 @@ function MzmlSpectrum(filename::AbstractString, spectrumID::Number=1)
   HDF5.h5open(filename, "r") do file
     spectrumIndex = file["mzML_spectrumIndex"][spectrumID:spectrumID+1] + 1
 
-    mzML = LibExpat.xp_parse(String(file["mzML"][spectrumIndex[1]:spectrumIndex[2]-1]))
+    grr = file["mzML"][spectrumIndex[1]:spectrumIndex[2]-1]
+    grr = ASCIIString(grr)
+    mzML = LibExpat.xp_parse(grr)
 
     arrayLength = parse(Int, mzML["@defaultArrayLength"][1])
-    mzsDataset = mzML["binaryDataArrayList/binaryDataArray/cvParam[@accession='MS:1000514']/../binary"]["@externalDataset"][1]
-    mzsOffset = parse(Int, mzML["binaryDataArrayList/binaryDataArray/cvParam[@accession='MS:1000514']/../binary"]["@offset"][1]) + 1
-    intensitiesDataset = mzML["binaryDataArrayList/binaryDataArray/cvParam[@accession='MS:1000515']/../binary"]["@externalDataset"][1]
-    intensitiesOffset = parse(Int, mzML["binaryDataArrayList/binaryDataArray/cvParam[@accession='MS:1000515']/../binary"]["@offset"][1]) + 1
+    if (arrayLength > 0)
+      mzsDataset = mzML["binaryDataArrayList/binaryDataArray/cvParam[@accession='MS:1000514']/../binary"]["@externalDataset"][1]
+      mzsOffset = parse(Int, mzML["binaryDataArrayList/binaryDataArray/cvParam[@accession='MS:1000514']/../binary"]["@offset"][1]) + 1
+      intensitiesDataset = mzML["binaryDataArrayList/binaryDataArray/cvParam[@accession='MS:1000515']/../binary"]["@externalDataset"][1]
+      intensitiesOffset = parse(Int, mzML["binaryDataArrayList/binaryDataArray/cvParam[@accession='MS:1000515']/../binary"]["@offset"][1]) + 1
 
-    MzmlSpectrum(
-      file[mzsDataset][mzsOffset:mzsOffset+arrayLength-1],
-      file[intensitiesDataset][intensitiesOffset:intensitiesOffset+arrayLength-1]
-    )
+      MzmlSpectrum(
+        file[mzsDataset][mzsOffset:mzsOffset+arrayLength-1],
+        file[intensitiesDataset][intensitiesOffset:intensitiesOffset+arrayLength-1]
+      )
+    else
+      MzmlSpectrum(Float64[], Float32[])
+    end
   end
 end
 
 
-type SmiSpectrum
-  binEdges
-  binCounts
+type SmbSpectrum
+  locations
+  counts
   exposure
 end
 
-function SmiSpectrum(filename::AbstractString, spectrumID::Number=1)
+function SmbSpectrum(filename::AbstractString, spectrumID::Number=1)
   HDF5.h5open(filename, "r") do file
-    if (HDF5.has(file,"binCountsIndex"))
-      binCountsIndex = file["binCountsIndex"][spectrumID:spectrumID+1] + 1
+    if (HDF5.has(file,"countsIndex"))
+      countsIndex = file["countsIndex"][spectrumID:spectrumID+1] + 1
     else
-      binCountsIndex = [1 size(file["binCounts"])[1]+1]
+      countsIndex = [1 size(file["counts"])[1]+1]
     end
 
-    SmiSpectrum(
-      file["binEdges"][binCountsIndex[1]+spectrumID-1:binCountsIndex[2]+spectrumID-1],
-      file["binCounts"][binCountsIndex[1]:binCountsIndex[2]-1],
-      file["exposures"][spectrumID][1]
-    )
+    if (countsIndex[2] - countsIndex[1] > 0)
+      if (HDF5.has(file,"binLocations"))
+        locations = file["binLocations"][countsIndex[1]+spectrumID-1:countsIndex[2]+spectrumID-1]
+      else
+        if(HDF5.has(file,"sampleLocations"))
+          locations = file["sampleLocations"][countsIndex[1]:countsIndex[2]-1]
+        else
+          locations = file["centroidLocations"][countsIndex[1]:countsIndex[2]-1]
+        end
+      end
+
+      SmbSpectrum(
+        locations,
+        file["counts"][countsIndex[1]:countsIndex[2]-1],
+        file["exposures"][spectrumID][1]
+      )         
+    else
+       SmbSpectrum(Float64[], Float32[], Float32[])  
     end
+  end
 end
 
 
