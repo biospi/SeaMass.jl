@@ -69,10 +69,16 @@ function SmbSpectrum(filename::AbstractString, spectrumID::Number=1)
         end
       end
 
+      if (HDF5.has(file,"exposures"))
+        exposures = file["exposures"][spectrumID][1]
+      else
+        exposures = 1.0
+      end
+
       SmbSpectrum(
         locations,
         file["counts"][countsIndex[1]:countsIndex[2]-1],
-        file["exposures"][spectrumID][1]
+        exposures
       )         
     else
        SmbSpectrum(Float64[], Float32[], Float32[])  
