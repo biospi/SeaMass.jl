@@ -24,9 +24,7 @@ function MzmlSpectrum(filename::AbstractString, spectrumID::Number=1)
   HDF5.h5open(filename, "r") do file
     spectrumIndex = file["mzML_spectrumIndex"][spectrumID:spectrumID+1] + 1
 
-    grr = file["mzML"][spectrumIndex[1]:spectrumIndex[2]-1]
-    grr = ASCIIString(grr)
-    mzML = LibExpat.xp_parse(grr)
+    mzML = LibExpat.xp_parse(String(file["mzML"][spectrumIndex[1]:spectrumIndex[2]-1]))
 
     arrayLength = parse(Int, mzML["@defaultArrayLength"][1])
     if (arrayLength > 0)
