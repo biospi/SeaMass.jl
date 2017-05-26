@@ -3,6 +3,8 @@ using Base.Test
 using Plots
 pyplot()
 
+cd(ENV["PWD"])
+
 # spectrum ID of spectrum we will be plotting
 spectrumID = 67
 
@@ -124,6 +126,7 @@ plot(
   xlabel = "m/z (Th)",
   ylabel = "ion count",
   xlims = (602, 605),
+  reuse = false,
 )
 sticks!(
   smbSpectrumOutCentroid.locations,
@@ -153,3 +156,6 @@ sticks!(
   m = 4,
 )
 gui()
+
+println("Press <Enter> to finish")
+readline()
