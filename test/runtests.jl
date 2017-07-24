@@ -41,13 +41,12 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
   plot(
     smbSpectrumIn.locations,
     vcat(
-      smbSpectrumIn.counts ./
-        (smbSpectrumIn.locations[2:end] - smbSpectrumIn.locations[1:end-1]),
+      smbSpectrumIn.counts ./ (smbSpectrumIn.locations[2:end] - smbSpectrumIn.locations[1:end-1]),
       0.0,
     ),
     line = :steppost,
-    label = "input",
-    title = filename * " SMB Comparison",
+    label = "SMB input",
+    title = "SMB comparison - " * filename,
     xlabel = "m/z (Th)",
     ylabel = "ion count density",
     reuse = false,
@@ -55,36 +54,29 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
   plot!(
     smbSpectrumOutReconstruct.locations,
     vcat(
-      smbSpectrumOutReconstruct.counts ./
-        (smbSpectrumOutReconstruct.locations[2:end] - smbSpectrumOutReconstruct.locations[1:end-1]),
+      smbSpectrumOutReconstruct.counts ./  (smbSpectrumOutReconstruct.locations[2:end] - smbSpectrumOutReconstruct.locations[1:end-1]),
       0.0,
     ),
     line = :steppost,
-    label = "seaMass-restore --reconstruct",
+    label = "SMB output (seaMass-restore --reconstruct)",
   )
   plot!(
     smbSpectrumOut.locations,
-    smbSpectrumOut.counts,
-    label = "seaMass-restore",
+    smbSpectrumOut.counts[2:end],
+    label = "SMB output (seaMass-restore)",
   )
   plot!(
     smbSpectrumOutDeconvolve.locations,
     smbSpectrumOutDeconvolve.counts,
-    label = "seaMass-restore --deconvolve",
+    label = "SMB output (seaMass-restore --deconvolve)",
   )
   sticks!(
     smbSpectrumOutCentroid.locations,
     smbSpectrumOutCentroid.counts,
-    label = "seaMass-restore --centroid",
+    label = "SMB output (seaMass-restore --centroid)",
     m = 4,
   )
   gui()
-
-  # load mzMLb input spectrum
-  mzmlbSpectrumIn = SeaMass.MzmlbSpectrum(
-    "data/" * filename * ".mzMLb",
-    inputSpectrumID
-  )
 
   # load mzMLb output spectrum
   mzmlbSpectrumOut = SeaMass.MzmlbSpectrum(
@@ -100,31 +92,44 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
 
   # Compare mzMLb
   plot(
-    mzmlbSpectrumIn.mzs,
-    mzmlbSpectrumIn.intensities,
-    label = "input",
-    title = "HYE124_TTOF6600_64var_lgillet_I150211_008__index_59994 mzMLb Comparison",
+    smbSpectrumIn.locations,
+    vcat(
+      smbSpectrumIn.counts ./ (smbSpectrumIn.locations[2:end] - smbSpectrumIn.locations[1:end-1]),
+      0.0,
+    ),
+    line = :steppost,
+    label = "SMB input",
+    title = "mzMLb comparison - " * filename,
     xlabel = "m/z (Th)",
-    ylabel = "intensity",
+    ylabel = "intensity density",
     reuse = false,
   )
   plot!(
     mzmlbSpectrumOut.mzs,
     mzmlbSpectrumOut.intensities,
-    label = "seaMass-restore",
+    label = "mzMLb output (seaMass-restore)",
   )
   sticks!(
     mzmlbSpectrumOutCentroid.mzs,
     mzmlbSpectrumOutCentroid.intensities,
-    label = "seaMass-restore --centroid",
+    label = "mzMLb output (seaMass-restore --centroid)",
     m = 4,
   )
   gui()
 
 end
 
-test("HYE124_TTOF6600_64var_lgillet_I150211_008__index_59994", "p-55-227433333333", 1, 1)
-test("P02U_Swath_1__mzWindow_602_605__scanTime_2300_3500", "p", (67 - 1) * 51 + 1, 67)
+filename = "HYE124_TTOF6600_64var_lgillet_I150211_008__index_59994"
+id = "p-55-227433333333"
+inputSpectrumID = 1
+outputSpectrumID = 1
+test(filename, id, inputSpectrumID, outputSpectrumID)
+
+filename = "P02U_Swath_1__mzWindow_602_605__scanTime_2300_3500"
+id = "p"
+inputSpectrumID = (67 - 1) * 51 + 1
+outputSpectrumID = 67
+test(filename, id, inputSpectrumID, outputSpectrumID)
 
 println("Press <Enter> to finish")
 readline()
