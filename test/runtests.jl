@@ -37,6 +37,12 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
     outputSpectrumID
   )
 
+  # load SMB deconvolved centroided output spectrum
+  smbSpectrumOutDeconvolveCentroid = SeaMass.SmbSpectrum(
+    "data/out/" * filename * "/6.seamass-restore_--deconvolve_--centroid/" * filename * "." * id * ".smb",
+    outputSpectrumID
+  )
+
   # Compare smb
   plot(
     smbSpectrumIn.locations,
@@ -62,7 +68,7 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
   )
   plot!(
     smbSpectrumOut.locations,
-    smbSpectrumOut.counts[2:end],
+    smbSpectrumOut.counts,
     label = "SMB output (seaMass-restore)",
   )
   plot!(
@@ -73,6 +79,12 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
   sticks!(
     smbSpectrumOutCentroid.locations,
     smbSpectrumOutCentroid.counts,
+    label = "SMB output (seaMass-restore --centroid)",
+    m = 4,
+  )
+  sticks!(
+    smbSpectrumOutDeconvolveCentroid.locations,
+    smbSpectrumOutDeconvolveCentroid.counts,
     label = "SMB output (seaMass-restore --centroid)",
     m = 4,
   )
