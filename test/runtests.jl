@@ -94,7 +94,7 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
   plot(
     smbSpectrumIn.locations,
     vcat(
-      smbSpectrumIn.counts ./ (smbSpectrumIn.locations[2:end] - smbSpectrumIn.locations[1:end-1]),
+      smbSpectrumIn.counts ./ (smbSpectrumIn.exposure .* (smbSpectrumIn.locations[2:end] - smbSpectrumIn.locations[1:end-1])),
       0.0,
     ),
     line = :steppost,
