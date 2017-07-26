@@ -13,6 +13,12 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
     outputSpectrumID
   )
 
+  # load SMB blurred input spectrum
+  smbSpectrumInBlur = SeaMass.SmbSpectrum(
+    "data/out/" * filename * "/1.seamass/" * filename * "." * id * ".input.smb",
+    outputSpectrumID
+  )
+
   # load SMB output spectrum
   smbSpectrumOut = SeaMass.SmbSpectrum(
     "data/out/" * filename * "/2.seamass-restore/" * filename * "." * id * ".smb",
@@ -26,20 +32,14 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
   )
 
   # load SMB reconstructed output spectrum
-  smbSpectrumOutReconstruct = SeaMass.SmbSpectrum(
-    "data/out/" * filename * "/4.seamass-restore_--reconstruct/" * filename * "." * id * ".smb",
-    outputSpectrumID
-  )
+  #smbSpectrumOutReconstruct = SeaMass.SmbSpectrum(
+  #  "data/out/" * filename * "/4.seamass-restore_--reconstruct/" * filename * "." * id * ".smb",
+  #  outputSpectrumID
+  #)
 
   # load SMB centroided output spectrum
   smbSpectrumOutCentroid = SeaMass.SmbSpectrum(
     "data/out/" * filename * "/5.seamass-restore_--centroid/" * filename * "." * id * ".smb",
-    outputSpectrumID
-  )
-
-  # load SMB deconvolved centroided output spectrum
-  smbSpectrumOutDeconvolveCentroid = SeaMass.SmbSpectrum(
-    "data/out/" * filename * "/6.seamass-restore_--deconvolve_--centroid/" * filename * "." * id * ".smb",
     outputSpectrumID
   )
 
@@ -58,33 +58,27 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
     reuse = false,
   )
   plot!(
-    smbSpectrumOutReconstruct.locations,
+    smbSpectrumInBlur.locations,
     vcat(
-      smbSpectrumOutReconstruct.counts ./  (smbSpectrumOutReconstruct.locations[2:end] - smbSpectrumOutReconstruct.locations[1:end-1]),
+      smbSpectrumInBlur.counts ./  (smbSpectrumInBlur.locations[2:end] - smbSpectrumInBlur.locations[1:end-1]),
       0.0,
     ),
     line = :steppost,
-    label = "SMB output (seaMass-restore --reconstruct)",
-  )
-  plot!(
-    smbSpectrumOut.locations,
-    smbSpectrumOut.counts,
-    label = "SMB output (seaMass-restore)",
+    label = "SMB blurred input",
   )
   plot!(
     smbSpectrumOutDeconvolve.locations,
     smbSpectrumOutDeconvolve.counts,
     label = "SMB output (seaMass-restore --deconvolve)",
   )
+  plot!(
+    smbSpectrumOut.locations,
+    smbSpectrumOut.counts,
+    label = "SMB output (seaMass-restore)",
+  )
   sticks!(
     smbSpectrumOutCentroid.locations,
     smbSpectrumOutCentroid.counts,
-    label = "SMB output (seaMass-restore --centroid)",
-    m = 4,
-  )
-  sticks!(
-    smbSpectrumOutDeconvolveCentroid.locations,
-    smbSpectrumOutDeconvolveCentroid.counts,
     label = "SMB output (seaMass-restore --centroid)",
     m = 4,
   )
