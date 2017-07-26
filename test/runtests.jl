@@ -14,10 +14,10 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
   )
 
   # load SMB blurred input spectrum
-  smbSpectrumInBlur = SeaMass.SmbSpectrum(
-    "data/out/" * filename * "/1.seamass/" * filename * "." * id * ".input.smb",
-    outputSpectrumID
-  )
+  #smbSpectrumInBlur = SeaMass.SmbSpectrum(
+  #  "data/out/" * filename * "/1.seamass/" * filename * "." * id * ".input.smb",
+  #  outputSpectrumID
+  #)
 
   # load SMB output spectrum
   smbSpectrumOut = SeaMass.SmbSpectrum(
@@ -57,15 +57,15 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
     ylabel = "ion count density",
     reuse = false,
   )
-  plot!(
-    smbSpectrumInBlur.locations,
-    vcat(
-      smbSpectrumInBlur.counts ./  (smbSpectrumInBlur.locations[2:end] - smbSpectrumInBlur.locations[1:end-1]),
-      0.0,
-    ),
-    line = :steppost,
-    label = "SMB blurred input",
-  )
+  #plot!(
+  #  smbSpectrumInBlur.locations,
+  #  vcat(
+  #    smbSpectrumInBlur.counts ./  (smbSpectrumInBlur.locations[2:end] - smbSpectrumInBlur.locations[1:end-1]),
+  #    0.0,
+  #  ),
+  #  line = :steppost,
+  #  label = "SMB blurred input",
+  #)
   plot!(
     smbSpectrumOutDeconvolve.locations,
     smbSpectrumOutDeconvolve.counts,
