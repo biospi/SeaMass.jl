@@ -14,6 +14,7 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
   )
 
   # load SMB blurred input spectrum
+  smbSpectrumInBlur = false
   try
     smbSpectrumInBlur = SeaMass.SmbSpectrum(
       "data/out/" * filename * "/1.seamass/" * filename * "." * id * ".input.smb",
@@ -41,7 +42,7 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
     ylabel = "ion count density",
     reuse = false,
   )
-  if isdefined(:smbSpectrumInBlur)
+  if smbSpectrumInBlur != false
     plot!(
       smbSpectrumInBlur.locations,
       vcat(
@@ -114,6 +115,12 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
   gui()
 
 
+  # load mzMLb reconstructed output spectrum
+  mzmlbSpectrumOutReconstruct = SeaMass.MzmlbSpectrum(
+    "data/out/" * filename * "/4.seamass-restore_--reconstruct/" * filename * ".mzMLb",
+    outputSpectrumID
+  )
+
   # load mzMLb output spectrum
   mzmlbSpectrumOut = SeaMass.MzmlbSpectrum(
     "data/out/" * filename * "/2.seamass-restore/" * filename * ".mzMLb",
@@ -139,6 +146,11 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
     xlabel = "m/z (Th)",
     ylabel = "intensity density",
     reuse = false,
+  )
+  plot!(
+    mzmlbSpectrumOutReconstruct.mzs,
+    mzmlbSpectrumOutReconstruct.intensities,
+    label = "mzMLb output (seaMass-restore --reconstruct)",
   )
   plot!(
     mzmlbSpectrumOut.mzs,
