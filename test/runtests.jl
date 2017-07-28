@@ -14,10 +14,55 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
   )
 
   # load SMB blurred input spectrum
-  #smbSpectrumInBlur = SeaMass.SmbSpectrum(
-  #  "data/out/" * filename * "/1.seamass/" * filename * "." * id * ".input.smb",
-  #  outputSpectrumID
-  #)
+  try
+    smbSpectrumInBlur = SeaMass.SmbSpectrum(
+      "data/out/" * filename * "/1.seamass/" * filename * "." * id * ".input.smb",
+      outputSpectrumID
+    )
+  end
+
+  # load SMB reconstructed output spectrum
+  smbSpectrumOutReconstruct = SeaMass.SmbSpectrum(
+    "data/out/" * filename * "/4.seamass-restore_--reconstruct/" * filename * "." * id * ".smb",
+    outputSpectrumID
+  )
+
+  # Compare smb
+  plot(
+    smbSpectrumIn.locations,
+    vcat(
+      smbSpectrumIn.counts ./ (smbSpectrumIn.locations[2:end] - smbSpectrumIn.locations[1:end-1]),
+      0.0,
+    ),
+    line = :steppost,
+    label = "SMB input",
+    title = "SMB binned comparison - " * filename,
+    xlabel = "m/z (Th)",
+    ylabel = "ion count density",
+    reuse = false,
+  )
+  if isdefined(:smbSpectrumInBlur)
+    plot!(
+      smbSpectrumInBlur.locations,
+      vcat(
+        smbSpectrumInBlur.counts ./  (smbSpectrumInBlur.locations[2:end] - smbSpectrumInBlur.locations[1:end-1]),
+        0.0,
+      ),
+      line = :steppost,
+      label = "SMB blurred input",
+    )
+  end
+  plot!(
+    smbSpectrumOutReconstruct.locations,
+    vcat(
+      smbSpectrumOutReconstruct.counts ./  (smbSpectrumOutReconstruct.locations[2:end] - smbSpectrumOutReconstruct.locations[1:end-1]),
+      0.0,
+    ),
+    line = :steppost,
+    label = "SMB output (seaMass-restore --reconstruct)",
+  )
+  gui()
+
 
   # load SMB output spectrum
   smbSpectrumOut = SeaMass.SmbSpectrum(
@@ -31,41 +76,25 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
     outputSpectrumID
   )
 
-  # load SMB reconstructed output spectrum
-  #smbSpectrumOutReconstruct = SeaMass.SmbSpectrum(
-  #  "data/out/" * filename * "/4.seamass-restore_--reconstruct/" * filename * "." * id * ".smb",
-  #  outputSpectrumID
-  #)
-
   # load SMB centroided output spectrum
   smbSpectrumOutCentroid = SeaMass.SmbSpectrum(
     "data/out/" * filename * "/5.seamass-restore_--centroid/" * filename * "." * id * ".smb",
     outputSpectrumID
   )
 
-  # Compare smb
   plot(
-    smbSpectrumIn.locations,
+    smbSpectrumOutReconstruct.locations,
     vcat(
-      smbSpectrumIn.counts ./ (smbSpectrumIn.locations[2:end] - smbSpectrumIn.locations[1:end-1]),
+      smbSpectrumOutReconstruct.counts ./  (smbSpectrumOutReconstruct.locations[2:end] - smbSpectrumOutReconstruct.locations[1:end-1]),
       0.0,
     ),
     line = :steppost,
-    label = "SMB input",
-    title = "SMB comparison - " * filename,
+    label = "SMB output (seaMass-restore --reconstruct)",
+    title = "SMB proccessed comparison - " * filename,
     xlabel = "m/z (Th)",
     ylabel = "ion count density",
     reuse = false,
   )
-  #plot!(
-  #  smbSpectrumInBlur.locations,
-  #  vcat(
-  #    smbSpectrumInBlur.counts ./  (smbSpectrumInBlur.locations[2:end] - smbSpectrumInBlur.locations[1:end-1]),
-  #    0.0,
-  #  ),
-  #  line = :steppost,
-  #  label = "SMB blurred input",
-  #)
   plot!(
     smbSpectrumOutDeconvolve.locations,
     smbSpectrumOutDeconvolve.counts,
@@ -83,6 +112,7 @@ function test(filename, id, inputSpectrumID, outputSpectrumID)
     m = 4,
   )
   gui()
+
 
   # load mzMLb output spectrum
   mzmlbSpectrumOut = SeaMass.MzmlbSpectrum(
